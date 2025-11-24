@@ -1,10 +1,10 @@
 import { FileUp } from "lucide-react";
 
-interface HeroSectionProps {
+interface MergeHeroSectionProps {
   onFileSelect: () => void;
 }
 
-const HeroSection = ({ onFileSelect }: HeroSectionProps) => {
+const MergeHeroSection = ({ onFileSelect }: MergeHeroSectionProps) => {
   return (
     <section className="gradient-hero py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto text-center">
@@ -38,4 +38,4 @@ const HeroSection = ({ onFileSelect }: HeroSectionProps) => {
   );
 };
 
-export default HeroSection;
+export default MergeHeroSection;
