@@ -81,6 +81,19 @@ const Navigation = () => {
                 <span className="hidden md:inline">To Word</span>
               </span>
             </Link>
+            <Link
+              to="/word-to-pdf"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-base ${
+                location.pathname === "/word-to-pdf" 
+                  ? "bg-primary text-primary-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="hidden md:inline">To PDF</span>
+              </span>
+            </Link>
           </div>
         </div>
       </div>
