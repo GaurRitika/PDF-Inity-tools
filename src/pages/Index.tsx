@@ -31,6 +31,12 @@ const Index = () => {
       route: "/pdf-to-word"
     },
     {
+      icon: FileText,
+      title: "Word to PDF",
+      description: "Convert DOC/DOCX files to professional PDFs",
+      route: "/word-to-pdf"
+    },
+    {
       icon: FileImage,
       title: "PDF to Image",
       description: "Convert PDF pages to JPG or PNG images",
