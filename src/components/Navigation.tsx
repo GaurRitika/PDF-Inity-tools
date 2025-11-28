@@ -107,6 +107,19 @@ const Navigation = () => {
                 <span className="hidden md:inline">To JPG</span>
               </span>
             </Link>
+            <Link
+              to="/jpg-to-pdf"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-base ${
+                location.pathname === "/jpg-to-pdf" 
+                  ? "bg-primary text-primary-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Image className="w-4 h-4" />
+                <span className="hidden md:inline">JPG→PDF</span>
+              </span>
+            </Link>
           </div>
         </div>
       </div>
