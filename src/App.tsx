@@ -10,6 +10,7 @@ import SplitPDF from "./pages/SplitPDF";
 import PdfToWord from "./pages/PdfToWord";
 import WordToPdf from "./pages/WordToPdf";
 import PdfToJpg from "./pages/PdfToJpg";
+import JpgToPdf from "./pages/JpgToPdf";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/pdf-to-word" element={<PdfToWord />} />
           <Route path="/word-to-pdf" element={<WordToPdf />} />
           <Route path="/pdf-to-jpg" element={<PdfToJpg />} />
+          <Route path="/jpg-to-pdf" element={<JpgToPdf />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
