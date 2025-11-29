@@ -18,5 +18,9 @@ Hey Guys , features are:
 
 7.JPG to PDF
 
+8.Image Compressor 
+
+9.Background Remover
+
 U can email me :
 devritika.gaur@gmail.com
