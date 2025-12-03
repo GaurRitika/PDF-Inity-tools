@@ -115,10 +115,7 @@ const Index = () => {
         <Navigation />
         
         {/* Hero Section */}
-        <section className="relative gradient-hero py-20 sm:py-28 px-4 sm:px-6 lg:px-8 overflow-hidden">
-          {/* Background Effects */}
-          <div className="absolute inset-0 gradient-mesh" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+        <section className="relative py-20 sm:py-28 px-4 sm:px-6 lg:px-8">
           
           <div className="relative max-w-5xl mx-auto text-center">
             {/* Badge */}
