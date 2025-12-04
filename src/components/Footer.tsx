@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Sparkles, Mail, Heart, Github, Twitter, ExternalLink } from "lucide-react";
+import { Sparkles, Mail, Heart, Github, Twitter } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -147,12 +147,21 @@ const Footer = () => {
               for you
             </p>
             <div className="flex items-center gap-4">
-              <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                Privacy <ExternalLink className="w-3 h-3" />
-              </a>
-              <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                Terms <ExternalLink className="w-3 h-3" />
-              </a>
+              <Link to="/privacy-policy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Terms of Service
+              </Link>
+              <Link to="/about" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                About Us
+              </Link>
+              <Link to="/contact" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Contact
+              </Link>
+              <Link to="/disclaimer" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Disclaimer
+              </Link>
             </div>
           </div>
         </div>

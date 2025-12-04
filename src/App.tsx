@@ -13,6 +13,11 @@ import PdfToJpg from "./pages/PdfToJpg";
 import JpgToPdf from "./pages/JpgToPdf";
 import ImageCompressor from "./pages/ImageCompressor";
 import BackgroundRemover from "./pages/BackgroundRemover";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import AboutUs from "./pages/AboutUs";
+import Contact from "./pages/Contact";
+import Disclaimer from "./pages/Disclaimer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +39,11 @@ const App = () => (
           <Route path="/jpg-to-pdf" element={<JpgToPdf />} />
           <Route path="/compress-image" element={<ImageCompressor />} />
           <Route path="/remove-background" element={<BackgroundRemover />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/disclaimer" element={<Disclaimer />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
