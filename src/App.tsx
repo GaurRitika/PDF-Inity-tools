@@ -30,7 +30,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/merge-pdf" element={<merge-pdf />} />
+          <Route path="/merge-pdf" element={<MergePDF />} />
           <Route path="/compress-pdf" element={<CompressPDF />} />
           <Route path="/split-pdf" element={<SplitPDF />} />
           <Route path="/pdf-to-word" element={<PdfToWord />} />
