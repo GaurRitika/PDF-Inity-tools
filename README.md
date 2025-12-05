@@ -4,23 +4,23 @@ Yeah , also if u can find any bugs , most welcome.
 
 Hey Guys , features are:
 
-1.PDF Merge: https://pdf-tools-pied.vercel.app/merge-pdf
+1.PDF Merge: https://pdf-inity.vercel.app/merge-pdf
 
-2.PDF Split : https://pdf-tools-pied.vercel.app/split-pdf
+2.PDF Split : https://pdf-inity.vercel.app/split-pdf
 
-3.PDF Compressor: https://pdf-tools-pied.vercel.app/compress-pdf
+3.PDF Compressor: https://pdf-inity.vercel.app/compress-pdf
 
-4.PDF to Word : https://pdf-tools-pied.vercel.app/pdf-to-word
+4.PDF to Word : https://pdf-inity.vercel.app/pdf-to-word
 
-5.Word to PDF : https://pdf-tools-pied.vercel.app/word-to-pdf
+5.Word to PDF : https://pdf-inity.vercel.app/word-to-pdf
 
-6.Pdf to JPG : https://pdf-tools-pied.vercel.app/pdf-to-jpg
+6.Pdf to JPG : https://pdf-inity.vercel.app/pdf-to-jpg
 
-7.JPG to PDF: https://pdf-tools-pied.vercel.app/jpg-to-pdf
+7.JPG to PDF: https://pdf-inity.vercel.app/jpg-to-pdf
 
-8.Image Compressor: https://pdf-tools-pied.vercel.app/compress-image
+8.Image Compressor: https://pdf-inity.vercel.app/compress-image
 
-9. Background Remover: https://pdf-tools-pied.vercel.app/remove-background
+9. Background Remover: https://pdf-inity.vercel.app/remove-background
 
 
 U can email me :
