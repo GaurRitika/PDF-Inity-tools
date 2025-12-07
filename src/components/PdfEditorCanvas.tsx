@@ -157,6 +157,7 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
   const [tempHighlight, setTempHighlight] = useState<HighlightAnnotation | null>(null);
   const [textInput, setTextInput] = useState("");
   const [textPosition, setTextPosition] = useState<{ x: number; y: number } | null>(null);
+  const [imagePosition, setImagePosition] = useState<{ x: number; y: number } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
@@ -243,7 +244,7 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
     extractText();
   }, [tool, currentPage, pdfBytes]);
 
-  // Render current page
+  // Render current page with edited text
   useEffect(() => {
     const renderPage = async () => {
       if (!canvasRef.current) return;
@@ -254,12 +255,31 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
         canvasRef.current.height = canvas.height;
         ctx.drawImage(canvas, 0, 0);
         
+        // Draw edited text on canvas (cover original and show new)
+        const scale = 1.5 * zoom;
+        const editedItems = extractedText.filter(t => t.pageIndex === currentPage && t.isEdited);
+        for (const item of editedItems) {
+          // Cover original text with white rectangle
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(
+            item.x * scale - 2,
+            (item.y - item.height) * scale - 2,
+            (item.width + 4) * scale,
+            (item.height + 4) * scale
+          );
+          
+          // Draw new text
+          ctx.font = `${item.fontSize * scale}px Arial`;
+          ctx.fillStyle = '#000000';
+          ctx.fillText(item.text, item.x * scale, item.y * scale);
+        }
+        
         // Draw annotations for current page
         drawAnnotations(ctx);
       }
     };
     renderPage();
-  }, [pdfBytes, currentPage, zoom, annotations, tempShape, tempHighlight]);
+  }, [pdfBytes, currentPage, zoom, annotations, tempShape, tempHighlight, extractedText]);
 
   const drawAnnotations = (ctx: CanvasRenderingContext2D) => {
     const scale = 1.5 * zoom;
@@ -376,6 +396,7 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
     } else if (tool === "text") {
       setTextPosition(coords);
     } else if (tool === "image") {
+      setImagePosition(coords);
       fileInputRef.current?.click();
     }
   };
@@ -486,17 +507,22 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
         img.onload = () => {
           const maxWidth = 200;
           const scale = maxWidth / img.width;
+          // Use clicked position or default to center-ish
+          const x = imagePosition?.x ?? 50;
+          const y = imagePosition?.y ?? 50;
           const newAnnotation: ImageAnnotation = {
             id: generateId(),
             type: "image",
-            x: 50,
-            y: 50,
+            x,
+            y,
             width: img.width * scale,
             height: img.height * scale,
             imageData: event.target?.result as string,
             pageIndex: currentPage,
           };
           setAnnotations(prev => [...prev, newAnnotation]);
+          setImagePosition(null);
+          toast.success("Image added!");
         };
         img.src = event.target?.result as string;
       };
@@ -690,6 +716,16 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
               <Edit3 className="w-4 h-4 text-blue-500" />
               <span className="text-xs text-blue-600 dark:text-blue-400">
                 Click on any text to edit it
+              </span>
+            </div>
+          )}
+
+          {/* Image Mode Hint */}
+          {tool === "image" && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <ImagePlus className="w-4 h-4 text-green-500" />
+              <span className="text-xs text-green-600 dark:text-green-400">
+                Click on the canvas to add an image
               </span>
             </div>
           )}
