@@ -567,23 +567,79 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
     setAnnotations(prev => prev.slice(0, -1));
   };
 
+  // const handleDownload = async () => {
+  //   setIsProcessing(true);
+  //   try {
+  //     const finalPageOrder = pageOrder.map(id => parseInt(id.split("-")[1]));
+  //     const editedItems = extractedText.filter(t => t.isEdited);
+  //     const editedPdfBytes = await applyAnnotationsAndSave(
+  //       pdfBytes,
+  //       annotations,
+  //       finalPageOrder,
+  //       deletedPages,
+  //       rotations,
+  //       editedItems.length > 0 ? editedItems : undefined
+  //     );
+  //     downloadPdf(editedPdfBytes, `edited_${fileName}`);
+  //     toast.success("PDF downloaded successfully!");
+  //   } catch (error) {
+  //     console.error("Error saving PDF:", error);
+  //   } finally {
+  //     setIsProcessing(false);
+  //   }
+  // };
+
   const handleDownload = async () => {
     setIsProcessing(true);
     try {
       const finalPageOrder = pageOrder.map(id => parseInt(id.split("-")[1]));
       const editedItems = extractedText.filter(t => t.isEdited);
+      
+      // Convert edited text to text annotations to cover original text
+      const textCoverAnnotations: Annotation[] = [];
+      for (const item of editedItems) {
+        // Add white rectangle to cover original text
+        textCoverAnnotations.push({
+          id: generateId(),
+          type: "shape",
+          shapeType: "rectangle",
+          x: item.x - 2,
+          y: item.y - item.height - 2,
+          width: item.width + 4,
+          height: item.height + 4,
+          color: "#ffffff",
+          strokeWidth: 0,
+          pageIndex: item.pageIndex,
+          filled: true,
+        } as ShapeAnnotation);
+        
+        // Add new text annotation
+        textCoverAnnotations.push({
+          id: generateId(),
+          type: "text",
+          x: item.x,
+          y: item.y,
+          text: item.text,
+          fontSize: item.fontSize,
+          color: "#000000",
+          pageIndex: item.pageIndex,
+        } as TextAnnotation);
+      }
+      
+      const allAnnotations = [...annotations, ...textCoverAnnotations];
+      
       const editedPdfBytes = await applyAnnotationsAndSave(
         pdfBytes,
-        annotations,
+        allAnnotations,
         finalPageOrder,
         deletedPages,
-        rotations,
-        editedItems.length > 0 ? editedItems : undefined
+        rotations
       );
       downloadPdf(editedPdfBytes, `edited_${fileName}`);
       toast.success("PDF downloaded successfully!");
     } catch (error) {
       console.error("Error saving PDF:", error);
+      toast.error("Failed to download PDF. Please try again.");
     } finally {
       setIsProcessing(false);
     }
