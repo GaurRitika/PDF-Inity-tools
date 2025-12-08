@@ -23,6 +23,7 @@ import {
   MousePointer2,
   Edit3,
   Bold,
+  Eraser,
 } from "lucide-react";
 import {
   Annotation,
@@ -58,7 +59,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
 
-type Tool = "select" | "editText" | "text" | "highlight" | "draw" | "rectangle" | "circle" | "arrow" | "image";
+type Tool = "select" | "editText" | "text" | "highlight" | "draw" | "rectangle" | "circle" | "arrow" | "image" | "eraser";
 
 interface PdfEditorCanvasProps {
   pdfBytes: Uint8Array;
@@ -111,12 +112,16 @@ const SortablePage = ({ id, pageIndex, thumbnail, isActive, isDeleted, rotation,
         <button
           onClick={(e) => { e.stopPropagation(); onRotate(); }}
           className="p-1 bg-background/80 rounded hover:bg-primary/20"
+          title="Rotate page"
+          aria-label="Rotate page"
         >
           <RotateCw className="w-3 h-3" />
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
           className="p-1 bg-background/80 rounded hover:bg-destructive/20"
+          title="Delete page"
+          aria-label="Delete page"
         >
           <Trash2 className="w-3 h-3" />
         </button>
@@ -169,6 +174,10 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
   const [editingTextValue, setEditingTextValue] = useState("");
   const [textEditColor, setTextEditColor] = useState("#000000");
   const [textEditFontSize, setTextEditFontSize] = useState(12);
+  
+  // Selection and eraser state
+  const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | null>(null);
+  const [imageSize, setImageSize] = useState(200); // Default image max width
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -285,7 +294,7 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
       }
     };
     renderPage();
-  }, [pdfBytes, currentPage, zoom, annotations, tempShape, tempHighlight, extractedText]);
+  }, [pdfBytes, currentPage, zoom, annotations, tempShape, tempHighlight, extractedText, selectedAnnotation]);
 
   const drawAnnotations = (ctx: CanvasRenderingContext2D) => {
     const scale = 1.5 * zoom;
@@ -376,6 +385,49 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
       ctx.fillStyle = tempHighlight.color + "4D";
       ctx.fillRect(tempHighlight.x * scale, tempHighlight.y * scale, tempHighlight.width * scale, tempHighlight.height * scale);
     }
+
+    // Draw selection box for selected annotation
+    if (selectedAnnotation && selectedAnnotation.pageIndex === currentPage) {
+      ctx.strokeStyle = "#3b82f6"; // Blue selection color
+      ctx.lineWidth = 2 * scale;
+      ctx.setLineDash([5 * scale, 5 * scale]);
+      
+      let selX: number, selY: number, selWidth: number, selHeight: number;
+      
+      switch (selectedAnnotation.type) {
+        case "text":
+          selX = selectedAnnotation.x * scale;
+          selY = (selectedAnnotation.y - selectedAnnotation.fontSize) * scale;
+          selWidth = selectedAnnotation.fontSize * selectedAnnotation.text.length * 0.6 * scale;
+          selHeight = selectedAnnotation.fontSize * scale;
+          break;
+        case "highlight":
+        case "shape":
+        case "image":
+          selX = selectedAnnotation.x * scale;
+          selY = selectedAnnotation.y * scale;
+          selWidth = selectedAnnotation.width * scale;
+          selHeight = selectedAnnotation.height * scale;
+          break;
+        case "draw":
+          if (selectedAnnotation.points.length > 0) {
+            const xs = selectedAnnotation.points.map(p => p.x * scale);
+            const ys = selectedAnnotation.points.map(p => p.y * scale);
+            selX = Math.min(...xs) - 5 * scale;
+            selY = Math.min(...ys) - 5 * scale;
+            selWidth = Math.max(...xs) - Math.min(...xs) + 10 * scale;
+            selHeight = Math.max(...ys) - Math.min(...ys) + 10 * scale;
+          } else {
+            return;
+          }
+          break;
+        default:
+          return;
+      }
+      
+      ctx.strokeRect(selX, selY, selWidth, selHeight);
+      ctx.setLineDash([]);
+    }
   };
 
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -389,21 +441,104 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
     };
   };
 
+  // Helper function to check if point is inside annotation
+  const isPointInAnnotation = (point: { x: number; y: number }, annotation: Annotation, scale: number): boolean => {
+    switch (annotation.type) {
+      case "text":
+        // Approximate text bounds
+        const textWidth = annotation.fontSize * annotation.text.length * 0.6;
+        return (
+          point.x >= annotation.x &&
+          point.x <= annotation.x + textWidth &&
+          point.y >= annotation.y - annotation.fontSize &&
+          point.y <= annotation.y
+        );
+      case "highlight":
+      case "shape":
+        return (
+          point.x >= annotation.x &&
+          point.x <= annotation.x + annotation.width &&
+          point.y >= annotation.y &&
+          point.y <= annotation.y + annotation.height
+        );
+      case "draw":
+        // Check if point is near any line segment
+        for (let i = 1; i < annotation.points.length; i++) {
+          const p1 = annotation.points[i - 1];
+          const p2 = annotation.points[i];
+          const dist = Math.abs(
+            (p2.y - p1.y) * point.x - (p2.x - p1.x) * point.y + p2.x * p1.y - p2.y * p1.x
+          ) / Math.sqrt((p2.y - p1.y) ** 2 + (p2.x - p1.x) ** 2);
+          if (dist < (annotation.strokeWidth * scale + 10)) {
+            const minX = Math.min(p1.x, p2.x);
+            const maxX = Math.max(p1.x, p2.x);
+            const minY = Math.min(p1.y, p2.y);
+            const maxY = Math.max(p1.y, p2.y);
+            if (point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY) {
+              return true;
+            }
+          }
+        }
+        return false;
+      case "image":
+        return (
+          point.x >= annotation.x &&
+          point.x <= annotation.x + annotation.width &&
+          point.y >= annotation.y &&
+          point.y <= annotation.y + annotation.height
+        );
+      default:
+        return false;
+    }
+  };
+
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const coords = getCanvasCoordinates(e);
+    const scale = 1.5 * zoom;
     
-    if (tool === "draw") {
+    if (tool === "select") {
+      // Find annotation at click point
+      const pageAnnotations = annotations.filter(a => a.pageIndex === currentPage);
+      let found = false;
+      for (let i = pageAnnotations.length - 1; i >= 0; i--) {
+        const ann = pageAnnotations[i];
+        if (isPointInAnnotation(coords, ann, scale)) {
+          setSelectedAnnotation(ann);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        setSelectedAnnotation(null);
+      }
+    } else if (tool === "eraser") {
+      // Delete annotation at click point
+      const pageAnnotations = annotations.filter(a => a.pageIndex === currentPage);
+      for (let i = pageAnnotations.length - 1; i >= 0; i--) {
+        const ann = pageAnnotations[i];
+        if (isPointInAnnotation(coords, ann, scale)) {
+          setAnnotations(prev => prev.filter(a => a.id !== ann.id));
+          toast.success("Annotation deleted");
+          break;
+        }
+      }
+    } else if (tool === "draw") {
       setIsDrawing(true);
       setCurrentDrawPoints([coords]);
+      setSelectedAnnotation(null);
     } else if (tool === "rectangle" || tool === "circle" || tool === "arrow") {
       setShapeStart(coords);
+      setSelectedAnnotation(null);
     } else if (tool === "highlight") {
       setHighlightStart(coords);
+      setSelectedAnnotation(null);
     } else if (tool === "text") {
       setTextPosition(coords);
+      setSelectedAnnotation(null);
     } else if (tool === "image") {
       setImagePosition(coords);
       fileInputRef.current?.click();
+      setSelectedAnnotation(null);
     }
   };
 
@@ -511,8 +646,8 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
       reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
-          const maxWidth = 200;
-          const scale = maxWidth / img.width;
+          // Use imageSize state instead of hardcoded maxWidth
+          const scale = imageSize / img.width;
           // Use clicked position or default to center-ish
           const x = imagePosition?.x ?? 50;
           const y = imagePosition?.y ?? 50;
@@ -571,6 +706,15 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
 
   const undoLastAnnotation = () => {
     setAnnotations(prev => prev.slice(0, -1));
+    setSelectedAnnotation(null);
+  };
+
+  const deleteSelectedAnnotation = () => {
+    if (selectedAnnotation) {
+      setAnnotations(prev => prev.filter(a => a.id !== selectedAnnotation.id));
+      setSelectedAnnotation(null);
+      toast.success("Annotation deleted");
+    }
   };
 
   // const handleDownload = async () => {
@@ -630,6 +774,7 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
     { id: "circle", icon: <Circle className="w-4 h-4" />, label: "Circle" },
     { id: "arrow", icon: <ArrowRight className="w-4 h-4" />, label: "Arrow" },
     { id: "image", icon: <ImagePlus className="w-4 h-4" />, label: "Image" },
+    { id: "eraser", icon: <Eraser className="w-4 h-4" />, label: "Eraser" },
   ];
 
   // Handle clicking on extracted text
@@ -675,6 +820,26 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
   // Get current page extracted text
   const currentPageText = extractedText.filter(t => t.pageIndex === currentPage);
 
+  // Handle keyboard events
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Delete key to remove selected annotation
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedAnnotation && tool === "select") {
+        e.preventDefault();
+        setAnnotations(prev => prev.filter(a => a.id !== selectedAnnotation.id));
+        setSelectedAnnotation(null);
+        toast.success("Annotation deleted");
+      }
+      // Escape to deselect
+      if (e.key === "Escape" && selectedAnnotation) {
+        setSelectedAnnotation(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedAnnotation, tool]);
+
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-card">
       {/* Toolbar */}
@@ -708,6 +873,8 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
               value={color}
               onChange={(e) => setColor(e.target.value)}
               className="w-8 h-8 rounded cursor-pointer border-0"
+              aria-label="Select color"
+              title="Select color"
             />
           </div>
 
@@ -741,6 +908,37 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
             </div>
           )}
 
+          {/* Image Size */}
+          {tool === "image" && (
+            <div className="flex items-center gap-2 min-w-[140px]">
+              <span className="text-xs text-muted-foreground">Max Width:</span>
+              <Slider
+                value={[imageSize]}
+                onValueChange={([v]) => setImageSize(v)}
+                min={50}
+                max={500}
+                step={10}
+                className="w-24"
+              />
+              <span className="text-xs text-muted-foreground w-12">{imageSize}px</span>
+            </div>
+          )}
+
+          {/* Delete Selected Annotation */}
+          {tool === "select" && selectedAnnotation && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={deleteSelectedAnnotation}
+                className="h-8"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete
+              </Button>
+            </div>
+          )}
+
           {/* Edit Text Mode Hint */}
           {tool === "editText" && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg">
@@ -757,6 +955,26 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
               <ImagePlus className="w-4 h-4 text-green-500" />
               <span className="text-xs text-green-600 dark:text-green-400">
                 Click on the canvas to add an image
+              </span>
+            </div>
+          )}
+
+          {/* Select Mode Hint */}
+          {tool === "select" && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <MousePointer2 className="w-4 h-4 text-blue-500" />
+              <span className="text-xs text-blue-600 dark:text-blue-400">
+                Click to select, Delete key to remove
+              </span>
+            </div>
+          )}
+
+          {/* Eraser Mode Hint */}
+          {tool === "eraser" && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <Eraser className="w-4 h-4 text-red-500" />
+              <span className="text-xs text-red-600 dark:text-red-400">
+                Click on annotations to delete them
               </span>
             </div>
           )}
@@ -851,7 +1069,11 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
               onMouseMove={handleCanvasMouseMove}
               onMouseUp={handleCanvasMouseUp}
               onMouseLeave={handleCanvasMouseUp}
-              className="shadow-elevated rounded-lg cursor-crosshair"
+              className={`shadow-elevated rounded-lg ${
+                tool === "select" ? "cursor-pointer" : 
+                tool === "eraser" ? "cursor-crosshair" :
+                "cursor-crosshair"
+              }`}
               style={{ transform: `rotate(${rotations[currentPage] || 0}deg)` }}
             />
             
@@ -995,6 +1217,8 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
         accept="image/*"
         onChange={handleImageUpload}
         className="hidden"
+        aria-label="Upload image"
+        title="Upload image"
       />
     </div>
   );
