@@ -259,13 +259,19 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
         const scale = 1.5 * zoom;
         const editedItems = extractedText.filter(t => t.pageIndex === currentPage && t.isEdited);
         for (const item of editedItems) {
+          // Calculate width based on the NEW text length (not original)
+          const originalWidth = item.width;
+          const newTextWidth = item.fontSize * item.text.length * 0.6;
+          const coverWidth = Math.max(originalWidth, newTextWidth);
+          
           // Cover original text with white rectangle
+          // Make it large enough to cover both original and potentially longer new text
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(
-            item.x * scale - 2,
-            (item.y - item.height) * scale - 2,
-            (item.width + 4) * scale,
-            (item.height + 4) * scale
+            item.x * scale - 5,
+            (item.y - item.height) * scale - 5,
+            (coverWidth + 10) * scale,
+            (item.height + 10) * scale
           );
           
           // Draw new text
@@ -588,7 +594,7 @@ const PdfEditorCanvas = ({ pdfBytes, pageCount, fileName }: PdfEditorCanvasProps
   //     setIsProcessing(false);
   //   }
   // };
-const handleDownload = async () => {
+  const handleDownload = async () => {
     setIsProcessing(true);
     try {
       const finalPageOrder = pageOrder.map(id => parseInt(id.split("-")[1]));
@@ -603,24 +609,6 @@ const handleDownload = async () => {
         deletedPages,
         rotations,
         editedItems.length > 0 ? editedItems : undefined // Edited text items
-      );
-      downloadPdf(editedPdfBytes, `edited_${fileName}`);
-      toast.success("PDF downloaded successfully!");
-    } catch (error) {
-      console.error("Error saving PDF:", error);
-      toast.error("Failed to download PDF. Please try again.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-      const allAnnotations = [...annotations, ...textCoverAnnotations];
-      
-      const editedPdfBytes = await applyAnnotationsAndSave(
-        pdfBytes,
-        allAnnotations,
-        finalPageOrder,
-        deletedPages,
-        rotations
       );
       downloadPdf(editedPdfBytes, `edited_${fileName}`);
       toast.success("PDF downloaded successfully!");

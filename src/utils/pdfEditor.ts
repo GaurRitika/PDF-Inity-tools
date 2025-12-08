@@ -284,22 +284,51 @@ export const applyAnnotationsAndSave = async (
       const { height: pageHeight } = page.getSize();
       
       // Use pdfY if available, otherwise calculate from canvas Y
-      const originalPdfY = textItem.pdfY !== undefined ? textItem.pdfY : (pageHeight - textItem.y);
+      // pdfY is the baseline Y coordinate in PDF space (Y=0 at bottom)
+      // IMPORTANT: Ensure pdfY is always available - if not, we need to get page height from pdfjs
+      let originalPdfY: number;
+      if (textItem.pdfY !== undefined) {
+        originalPdfY = textItem.pdfY;
+      } else {
+        // Fallback: calculate from canvas Y coordinate
+        // Canvas Y=0 is at top, PDF Y=0 is at bottom
+        // We need the viewport height to convert, but we'll use pageHeight as approximation
+        originalPdfY = pageHeight - textItem.y;
+      }
+      
+      // Calculate width based on the NEW text length (not original)
+      // Use the larger of original width or new text width to ensure full coverage
+      // Add generous padding to account for font metrics variations
+      const originalWidth = textItem.width;
+      const newTextWidth = textItem.fontSize * textItem.text.length * 0.6; // Same formula as extraction
+      const coverWidth = Math.max(originalWidth, newTextWidth) + 30; // Very generous padding
       
       // Cover original text with white rectangle
-      // Position the rectangle at the baseline minus a bit for descenders
+      // In PDF-lib, rectangle Y is the bottom-left corner
+      // Text baseline is at originalPdfY, so we need to cover:
+      // - Descenders below baseline: ~0.3 * fontSize
+      // - Ascenders above baseline: ~0.7 * fontSize
+      // Rectangle bottom should be well below baseline to cover descenders
+      // Rectangle height should cover full text height with extra margin
+      const rectBottomY = originalPdfY - textItem.fontSize * 0.6; // Start well below baseline
+      const rectHeight = textItem.fontSize * 2.0; // Very generous height to cover everything
+      
+      // Draw white rectangle FIRST to cover original text
+      // This must be drawn before the new text
       page.drawRectangle({
-        x: textItem.x - 2,
-        y: originalPdfY - textItem.fontSize * 0.3,
-        width: textItem.width + 4,
-        height: textItem.fontSize * 1.3,
+        x: textItem.x - 15, // Very generous padding on left
+        y: rectBottomY,
+        width: coverWidth,
+        height: rectHeight,
         color: rgb(1, 1, 1),
+        opacity: 1.0, // Fully opaque white
       });
       
-      // Draw new text at the original baseline position
+      // Draw new text at the EXACT original baseline position
+      // This is drawn AFTER the rectangle, so it appears on top
       page.drawText(textItem.text, {
         x: textItem.x,
-        y: originalPdfY,
+        y: originalPdfY, // Same baseline as original text
         size: textItem.fontSize,
         font,
         color: rgb(0, 0, 0),
