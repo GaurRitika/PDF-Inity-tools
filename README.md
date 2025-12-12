@@ -26,7 +26,26 @@ Hey Guys , features are:
     <img width="1795" height="867" alt="image" src="https://github.com/user-attachments/assets/6d3bc693-5c17-40a4-b120-c5392ed91b81" />
     edit your pdf guys...
 
+Libraries that i used : 
+👉 pdf-lib
 
+PDF merge, split, draw, edit
+
+👉 browser-image-compression
+
+Image compressor
+
+👉 fabric.js or canvas
+
+PDF editing UI
+
+👉 pdfjs-dist
+
+PDF preview + extract
+
+👉 remove.bg style models / custom WASM
+
+background removal
 
 U can email me :
 devritika.gaur@gmail.com
