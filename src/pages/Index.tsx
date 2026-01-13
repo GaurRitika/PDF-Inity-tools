@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet";
-import { FileUp, FileDown, Scissors, FileText, FileImage, Shield, Zap, Sparkles, Check, Eraser, ArrowRight, Star, Edit3 } from "lucide-react";
+import { FileUp, FileDown, Scissors, FileText, FileImage, Shield, Zap, Sparkles, Check, Eraser, ArrowRight, Star, Edit3, Video } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import ToolCard from "@/components/ToolCard";
 import Footer from "@/components/Footer";
@@ -65,6 +65,12 @@ const Index = () => {
       title: "Background Remover",
       description: "Remove image backgrounds instantly using AI",
       route: "/remove-background"
+    },
+    {
+      icon: Video,
+      title: "Video Compressor",
+      description: "Compress videos up to 70% smaller in your browser",
+      route: "/compress-video"
     }
   ];
 
