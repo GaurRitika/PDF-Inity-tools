@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { FileUp, FileDown, Home, Scissors, FileText, Image, Sparkles, Eraser, Menu, X, Edit3 } from "lucide-react";
+import { FileUp, FileDown, Home, Scissors, FileText, Image, Sparkles, Eraser, Menu, X, Edit3, Video } from "lucide-react";
 import { useState } from "react";
 
 const Navigation = () => {
@@ -15,6 +15,7 @@ const Navigation = () => {
     { to: "/pdf-to-jpg", icon: Image, label: "To JPG" },
     { to: "/compress-image", icon: Image, label: "Image" },
     { to: "/remove-background", icon: Eraser, label: "BG Remove" },
+    { to: "/compress-video", icon: Video, label: "Video" },
   ];
 
   return (
