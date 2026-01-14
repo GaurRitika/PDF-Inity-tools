@@ -25,6 +25,9 @@ Hey Guys , features are:
 10. Pdf - Editor : https://pdf-inity.vercel.app/pdf-editor
     <img width="1795" height="867" alt="image" src="https://github.com/user-attachments/assets/6d3bc693-5c17-40a4-b120-c5392ed91b81" />
     edit your pdf guys...
+11. Video - Compressor : https://pdf-inity.vercel.app/compress-video
+
+12. Video-Splitter : https://pdf-inity.vercel.app/video-splitter
 
 Libraries that i used : 
 👉 pdf-lib
