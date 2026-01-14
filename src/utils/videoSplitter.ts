@@ -97,13 +97,32 @@ const initFFmpeg = async (onProgress?: (progress: number) => void): Promise<FFmp
       onProgress(Math.round(progress * 100));
     }
   });
-  
-  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-  
-  await ffmpeg.load({
-    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+
+  ffmpeg.on('log', ({ message }) => {
+    console.log('[FFmpeg]', message);
   });
+
+  try {
+    // Try loading with single-threaded version (more compatible)
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    
+    const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
+    const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+    
+    await ffmpeg.load({
+      coreURL,
+      wasmURL,
+    });
+    
+    console.log('FFmpeg loaded successfully');
+  } catch (error) {
+    console.error('FFmpeg load error:', error);
+    ffmpeg = null;
+    throw new Error(
+      'Failed to load video processing library. This may be due to browser restrictions. ' +
+      'Please try: 1) Using Chrome or Firefox, 2) Disabling browser extensions, 3) Refreshing the page.'
+    );
+  }
   
   return ffmpeg;
 };
