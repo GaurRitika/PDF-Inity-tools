@@ -16,6 +16,7 @@ const Navigation = () => {
     { to: "/compress-image", icon: Image, label: "Image" },
     { to: "/remove-background", icon: Eraser, label: "BG Remove" },
     { to: "/compress-video", icon: Video, label: "Video" },
+    { to: "/video-splitter", icon: Scissors, label: "V-Split" },
   ];
 
   return (

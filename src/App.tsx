@@ -15,6 +15,7 @@ import ImageCompressor from "./pages/ImageCompressor";
 import BackgroundRemover from "./pages/BackgroundRemover";
 import PdfEditor from "./pages/PdfEditor";
 import VideoCompressor from "./pages/VideoCompressor";
+import VideoSplitter from "./pages/VideoSplitter";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import AboutUs from "./pages/AboutUs";
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/remove-background" element={<BackgroundRemover />} />
           <Route path="/pdf-editor" element={<PdfEditor />} />
           <Route path="/compress-video" element={<VideoCompressor />} />
+          <Route path="/video-splitter" element={<VideoSplitter />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/about" element={<AboutUs />} />

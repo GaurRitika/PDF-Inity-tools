@@ -71,6 +71,12 @@ const Index = () => {
       title: "Video Compressor",
       description: "Compress videos up to 70% smaller in your browser",
       route: "/compress-video"
+    },
+    {
+      icon: Scissors,
+      title: "Video Splitter",
+      description: "Split videos by time, duration, or equal parts - no watermark",
+      route: "/video-splitter"
     }
   ];
 
