@@ -178,9 +178,12 @@ const VideoSplitterFileUpload = () => {
       });
     } catch (error) {
       console.error('Split error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while splitting the video';
       toast({
         title: "Split failed",
-        description: "An error occurred while splitting the video",
+        description: errorMessage.includes('Failed to load') 
+          ? "Could not load video processor. Try refreshing the page or using Chrome/Firefox."
+          : errorMessage,
         variant: "destructive",
       });
     } finally {
